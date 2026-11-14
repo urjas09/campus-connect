@@ -3,124 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampusConnect - Dashboard</title>
+    <title>Dashboard - CampusConnect</title>
     <link rel="stylesheet" href="/css/style.css">
     <style>
-        .dashboard-container {
-            width: 100%;
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 1rem;
-        }
-        .welcome-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-            margin-bottom: 1.5rem;
-        }
-        .user-details {
-            margin-top: 1rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-        .detail-item {
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-        }
-        .detail-label {
-            font-size: 0.8rem;
-            color: #64748b;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-        .detail-val {
-            font-size: 1.1rem;
-            color: #1e293b;
-            font-weight: 600;
-            margin-top: 0.25rem;
-        }
-        .role-badge {
-            display: inline-block;
-            background: #dbeafe;
-            color: #1e40af;
-            padding: 0.25rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .nav-actions {
+        /* ── Dashboard-specific styles ── */
+        .dashboard-hero {
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+            color: white;
+            padding: 32px 24px;
+            border-radius: 12px;
+            margin-bottom: 32px;
             display: flex;
             align-items: center;
-            gap: 1rem;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
         }
-        .logout-link {
-            color: #ffffff;
+        .hero-left h1 {
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+        }
+        .hero-left p {
+            opacity: 0.85;
+            font-size: 0.95rem;
+        }
+        .hero-score-box {
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 16px 24px;
+            text-align: center;
+            min-width: 140px;
+        }
+        .score-number {
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .score-band {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        /* ── Reminders banner ── */
+        .reminders-banner {
+            background: #fff3e0;
+            border-left: 4px solid #f57c00;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 28px;
+            display: none; /* shown via JS if reminders exist */
+        }
+        .reminders-banner h3 {
+            color: #e65100;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        .reminder-item {
+            font-size: 0.88rem;
+            color: #333;
+            margin-bottom: 4px;
+            padding: 4px 0;
+            border-bottom: 1px solid #ffe0b2;
+        }
+        .reminder-item:last-child { border-bottom: none; }
+
+        /* ── Module cards grid ── */
+        .modules-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .module-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #e8eaf6;
+        }
+        .module-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+        .module-icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .module-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a237e;
+            margin: 0;
+        }
+        .module-card p {
+            font-size: 0.82rem;
+            color: #666;
+            margin: 0;
+            line-height: 1.4;
+        }
+        .module-card .badge {
+            align-self: flex-start;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .module-card .badge.blue {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        .module-card .badge.orange {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        /* ── Quick stats row ── */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .stat-box {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+            border: 1px solid #e8eaf6;
+        }
+        .stat-box .stat-num {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1a73e8;
+        }
+        .stat-box .stat-label {
+            font-size: 0.78rem;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        /* logout link */
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            padding: 8px 18px;
+            border-radius: 20px;
             cursor: pointer;
-            text-decoration: underline;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+        @media (max-width: 600px) {
+            .dashboard-hero { flex-direction: column; align-items: flex-start; }
+            .hero-score-box { width: 100%; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="nav-container">
-            <div class="logo">CampusConnect</div>
-            <div class="nav-actions">
-                <a href="/recommendations.html" style="color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-right: 0.5rem;">Recommendations</a>
-                <a href="/opportunities.html" style="color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-right: 0.5rem;">Opportunities</a>
-                <a href="/applications.html" style="color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-right: 0.5rem;">Applications</a>
-                <a href="/readiness.html" style="color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-right: 0.5rem;">Readiness</a>
-                <a href="/analytics.html" style="color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-right: 0.5rem;">Analytics</a>
-                <a href="/profile.html" style="color: #ffffff; text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-right: 0.5rem;">Edit Profile</a>
-                <span id="navUserName" style="font-size: 0.9rem;"></span>
-                <a class="logout-link" onclick="logout()">Logout</a>
-            </div>
-        </div>
-    </header>
-
-    <main class="dashboard-container">
-        <div class="welcome-card">
-            <h2>Welcome, <span id="userFullName">User</span>!</h2>
-            <p class="subtitle" style="margin-top: 0.3rem;">You are signed in to the Campus Opportunity & Career Readiness Platform.</p>
-
-            <div class="user-details">
-                <div class="detail-item">
-                    <div class="detail-label">Your Role</div>
-                    <div class="detail-val"><span id="userRole" class="role-badge">STUDENT</span></div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Email Address</div>
-                    <div class="detail-val" id="userEmail">user@college.edu</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">User ID</div>
-                    <div class="detail-val" id="userId">#1</div>
+    <div class="container">
+        <!-- Hero section: greeting + score -->
+        <div class="dashboard-hero">
+            <div class="hero-left">
+                <h1 id="greeting">👋 Welcome back!</h1>
+                <p id="user-info">Loading your profile...</p>
+                <div style="margin-top:12px;">
+                    <a href="/login.html" class="logout-btn" onclick="logout()">Sign Out</a>
                 </div>
             </div>
+            <div class="hero-score-box">
+                <div class="score-number" id="score-display">—</div>
+                <div style="font-size:0.75rem;opacity:0.8;margin-top:2px;">Readiness Score</div>
+                <div class="score-band" id="score-band">Loading...</div>
+            </div>
         </div>
-    </main>
+
+        <!-- Deadline reminders banner -->
+        <div class="reminders-banner" id="reminders-banner">
+            <h3>⏰ Upcoming Deadlines — Act Now!</h3>
+            <div id="reminders-list"></div>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="modules-title">📊 Your Overview</div>
+        <div class="quick-stats">
+            <div class="stat-box">
+                <div class="stat-num" id="stat-opps">—</div>
+                <div class="stat-label">Active Drives</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="stat-apps">—</div>
+                <div class="stat-label">My Applications</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="stat-students">—</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="stat-selection">—</div>
+                <div class="stat-label">Selection Rate</div>
+            </div>
+        </div>
+
+        <!-- Module navigation cards -->
+        <div class="modules-title">🚀 Modules</div>
+        <div class="modules-grid">
+            <a class="module-card" href="/profile.html">
+                <div class="module-icon">👤</div>
+                <h3>My Profile</h3>
+                <p>Update your CGPA, branch, year, skills, and career interests.</p>
+                <span class="badge">Student</span>
+            </a>
+
+            <a class="module-card" href="/opportunities.html">
+                <div class="module-icon">🏢</div>
+                <h3>Opportunities</h3>
+                <p>Browse all active placement drives and internship listings.</p>
+                <span class="badge blue">Browse</span>
+            </a>
+
+            <a class="module-card" href="/eligibility.html">
+                <div class="module-icon">✅</div>
+                <h3>Eligibility Check</h3>
+                <p>See if you meet all criteria for a drive before applying.</p>
+                <span class="badge">Distinctive</span>
+            </a>
+
+            <a class="module-card" href="/skill-gap.html">
+                <div class="module-icon">🎯</div>
+                <h3>Skill Gap Analyzer</h3>
+                <p>Find which skills you're missing and get learning tips.</p>
+                <span class="badge">Distinctive</span>
+            </a>
+
+            <a class="module-card" href="/recommendations.html">
+                <div class="module-icon">💡</div>
+                <h3>Recommendations</h3>
+                <p>Personalized drive suggestions ranked by your fit score.</p>
+                <span class="badge">Distinctive</span>
+            </a>
+
+            <a class="module-card" href="/readiness.html">
+                <div class="module-icon">📈</div>
+                <h3>Readiness Score</h3>
+                <p>Your placement readiness across 4 pillars with action items.</p>
+                <span class="badge">Distinctive</span>
+            </a>
+
+            <a class="module-card" href="/applications.html">
+                <div class="module-icon">📋</div>
+                <h3>Application Tracker</h3>
+                <p>Track every application stage from Applied to Selected.</p>
+                <span class="badge">Distinctive</span>
+            </a>
+
+            <a class="module-card" href="/analytics.html">
+                <div class="module-icon">📊</div>
+                <h3>Analytics</h3>
+                <p>Placement statistics, funnel stages, and branch-wise breakdown.</p>
+                <span class="badge orange">Officer</span>
+            </a>
+        </div>
+    </div>
 
     <script>
-        const userStr = localStorage.getItem('currentUser');
-        if (!userStr) {
-            window.location.href = '/login.html';
-        } else {
-            const user = JSON.parse(userStr);
-            document.getElementById('userFullName').textContent = user.fullName;
-            document.getElementById('navUserName').textContent = user.fullName;
-            document.getElementById('userRole').textContent = user.role;
-            document.getElementById('userEmail').textContent = user.email;
-            document.getElementById('userId').textContent = '#' + user.id;
-        }
+        const BASE = 'http://localhost:8080';
 
         function logout() {
-            localStorage.removeItem('currentUser');
-            window.location.href = '/login.html';
+            localStorage.removeItem('userId');
+            localStorage.removeItem('profileId');
+            localStorage.removeItem('userName');
         }
+
+        async function loadDashboard() {
+            // Get stored user info
+            const userId = localStorage.getItem('userId');
+            const storedName = localStorage.getItem('userName');
+
+            if (!userId) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // Show name immediately if stored
+            if (storedName) {
+                document.getElementById('greeting').textContent = `👋 Welcome back, ${storedName}!`;
+            }
+
+            try {
+                // 1. Load profile to get profileId and details
+                const profileRes = await fetch(`${BASE}/api/students/profile/${userId}`);
+                if (!profileRes.ok) {
+                    document.getElementById('user-info').textContent = 'Profile not set up yet. Click "My Profile" to get started.';
+                } else {
+                    const profile = await profileRes.json();
+                    const profileId = profile.id;
+                    localStorage.setItem('profileId', profileId);
+
+                    document.getElementById('greeting').textContent = `👋 Welcome back, ${profile.fullName || storedName || 'Student'}!`;
+                    document.getElementById('user-info').textContent =
+                        `${profile.branch} • Year ${profile.yearOfStudy} • CGPA ${profile.cgpa}`;
+
+                    // 2. Load readiness score
+                    loadReadinessScore(profileId);
+
+                    // 3. Load reminders
+                    loadReminders(profileId);
+
+                    // 4. Load application count for this student
+                    loadApplicationCount(profileId);
+                }
+
+                // 5. Load platform analytics (doesn't need profileId)
+                loadAnalytics();
+
+            } catch (err) {
+                console.error('Dashboard load error:', err);
+                document.getElementById('user-info').textContent = 'Could not load profile. Is the server running?';
+            }
+        }
+
+        async function loadReadinessScore(profileId) {
+            try {
+                const res = await fetch(`${BASE}/api/readiness/student/${profileId}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                document.getElementById('score-display').textContent = data.overallScore;
+                // shorten band label for small box
+                const shortBand = data.band.split('(')[0].trim();
+                document.getElementById('score-band').textContent = shortBand;
+            } catch (e) {
+                document.getElementById('score-band').textContent = 'Unavailable';
+            }
+        }
+
+        async function loadReminders(profileId) {
+            try {
+                const res = await fetch(`${BASE}/api/reminders/student/${profileId}`);
+                if (!res.ok) return;
+                const reminders = await res.json();
+                if (reminders.length === 0) return;
+
+                const banner = document.getElementById('reminders-banner');
+                const list = document.getElementById('reminders-list');
+                banner.style.display = 'block';
+
+                reminders.forEach(r => {
+                    const div = document.createElement('div');
+                    div.className = 'reminder-item';
+                    div.textContent = `🏢 ${r.companyName} — ${r.opportunityTitle}: ${r.message}`;
+                    list.appendChild(div);
+                });
+            } catch (e) {
+                // reminders are non-critical, fail silently
+            }
+        }
+
+        async function loadApplicationCount(profileId) {
+            try {
+                const res = await fetch(`${BASE}/api/applications/student/${profileId}`);
+                if (!res.ok) return;
+                const apps = await res.json();
+                document.getElementById('stat-apps').textContent = apps.length;
+            } catch (e) {
+                document.getElementById('stat-apps').textContent = '—';
+            }
+        }
+
+        async function loadAnalytics() {
+            try {
+                const res = await fetch(`${BASE}/api/analytics/overview`);
+                if (!res.ok) return;
+                const data = await res.json();
+                document.getElementById('stat-opps').textContent = data.activeOpportunities;
+                document.getElementById('stat-students').textContent = data.totalStudents;
+                document.getElementById('stat-selection').textContent = data.overallSelectionRate + '%';
+            } catch (e) {
+                // non-critical
+            }
+        }
+
+        // Run on page load
+        loadDashboard();
     </script>
 </body>
 </html>
