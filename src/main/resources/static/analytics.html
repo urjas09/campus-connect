@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Placement Analytics</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        .kpi-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .kpi-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .kpi-val {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-top: 0.35rem;
+        }
+        .section-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 2rem;
+        }
+        .stage-row {
+            margin-bottom: 1rem;
+        }
+        .stage-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            color: #334155;
+        }
+        .bar-bg {
+            background: #f1f5f9;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            background: #2563eb;
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">CampusConnect</div>
+            <nav class="nav-links">
+                <a href="/dashboard.html">Dashboard</a>
+                <a href="/opportunities.html">Opportunities</a>
+                <a href="/applications.html">Applications</a>
+                <a href="/analytics.html" style="font-weight: 700;">Placement Analytics</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2>Campus Placement Analytics</h2>
+        <p class="subtitle">Real-time drive participation, funnel conversion rates and branch breakdown</p>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Registered Students</div>
+                <div class="kpi-val" id="kStudents">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Active Campus Drives</div>
+                <div class="kpi-val" id="kActiveDrives" style="color: #2563eb;">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Total Applications</div>
+                <div class="kpi-val" id="kApps">0</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Selection Rate</div>
+                <div class="kpi-val" id="kRate" style="color: #16a34a;">0%</div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h3 style="margin-bottom: 1.25rem;">Candidate Funnel Breakdown</h3>
+            <div id="funnelStages"></div>
+        </div>
+
+        <div class="section-card">
+            <h3 style="margin-bottom: 1.25rem;">Branch-Wise Student Enrollment & Placements</h3>
+            <div id="branchBreakdown"></div>
+        </div>
+    </main>
+
+    <script>
+        const userStr = localStorage.getItem('currentUser');
+        if (!userStr) window.location.href = '/login.html';
+
+        async function loadAnalytics() {
+            try {
+                const res = await fetch('/api/analytics/overview');
+                const data = await res.json();
+
+                document.getElementById('kStudents').textContent = data.totalStudents;
+                document.getElementById('kActiveDrives').textContent = data.activeOpportunities;
+                document.getElementById('kApps').textContent = data.totalApplications;
+                document.getElementById('kRate').textContent = data.overallSelectionRate + '%';
+
+                // Funnel Breakdown
+                const funnelDiv = document.getElementById('funnelStages');
+                const total = data.totalApplications || 1;
+                const stages = data.stageDistribution || {};
+
+                funnelDiv.innerHTML = Object.keys(stages).map(stage => {
+                    const count = stages[stage];
+                    const pct = Math.round((count / total) * 100);
+                    let color = '#2563eb';
+                    if (stage === 'SELECTED') color = '#16a34a';
+                    if (stage === 'REJECTED') color = '#dc2626';
+
+                    return `
+                        <div class="stage-row">
+                            <div class="stage-info">
+                                <span>${stage.replace('_', ' ')}</span>
+                                <span>${count} (${pct}%)</span>
+                            </div>
+                            <div class="bar-bg">
+                                <div class="bar-fill" style="width: ${pct}%; background: ${color};"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Branch breakdown
+                const branchDiv = document.getElementById('branchBreakdown');
+                const branches = data.branchWiseStudentCount || {};
+                const selected = data.branchWiseSelectedCount || {};
+
+                branchDiv.innerHTML = Object.keys(branches).map(b => {
+                    const totalB = branches[b];
+                    const placedB = selected[b] || 0;
+                    return `
+                        <div class="stage-row">
+                            <div class="stage-info">
+                                <span><strong>${escapeHtml(b)}</strong> (${totalB} students registered)</span>
+                                <span style="color: #16a34a;">${placedB} Placed</span>
+                            </div>
+                            <div class="bar-bg">
+                                <div class="bar-fill" style="width: ${totalB > 0 ? (placedB/totalB)*100 : 0}%; background: #16a34a;"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error('Analytics load error:', err);
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login.html';
+        }
+
+        loadAnalytics();
+    </script>
+</body>
+</html>
