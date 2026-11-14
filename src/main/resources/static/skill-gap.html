@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Skill Gap Analyzer</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        .analyzer-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .stat-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-top: 0.25rem;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .progress-bar-bg {
+            background: #e2e8f0;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 1rem 0 2rem 0;
+        }
+        .progress-bar-fill {
+            background: #2563eb;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .skills-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .skills-table th, .skills-table td {
+            padding: 0.85rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+        .skills-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+        }
+        .status-pill {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .pill-available {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .pill-needs_improvement {
+            background: #fef9c3;
+            color: #a16207;
+        }
+        .pill-missing {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .tip-text {
+            font-size: 0.8rem;
+            color: #0369a1;
+            margin-top: 0.2rem;
+            display: block;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 650px) {
+            .analyzer-card {
+                padding: 1.25rem 1rem;
+            }
+            .skills-table thead {
+                display: none;
+            }
+            .skills-table, .skills-table tbody, .skills-table tr, .skills-table td {
+                display: block;
+                width: 100%;
+            }
+            .skills-table tr {
+                margin-bottom: 1rem;
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                padding: 0.75rem;
+                background: #fcfcfc;
+            }
+            .skills-table td {
+                padding: 0.4rem 0;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">CampusConnect</div>
+            <nav class="nav-links">
+                <a href="/dashboard.html">Dashboard</a>
+                <a href="/opportunities.html">Opportunities</a>
+                <a href="/profile.html">My Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="analyzer-card">
+            <div id="loadingText">Analyzing skill coverage against drive requirements...</div>
+
+            <div id="content" style="display: none;">
+                <h2 id="oppHeading">Job Title</h2>
+                <p id="companyHeading" class="subtitle" style="margin-bottom: 1rem;">Company Name</p>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Coverage Index</div>
+                        <div class="stat-number" id="covNum" style="color: #2563eb;">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Available</div>
+                        <div class="stat-number" id="availNum" style="color: #16a34a;">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Needs Improvement</div>
+                        <div class="stat-number" id="impNum" style="color: #ca8a04;">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Missing</div>
+                        <div class="stat-number" id="missNum" style="color: #dc2626;">0</div>
+                    </div>
+                </div>
+
+                <div class="progress-bar-bg">
+                    <div id="progressFill" class="progress-bar-fill"></div>
+                </div>
+
+                <h3>Skill-by-Skill Breakdown & Recommendations</h3>
+                <table class="skills-table">
+                    <thead>
+                        <tr>
+                            <th>Skill</th>
+                            <th>Status</th>
+                            <th>Analysis & Actionable Learning Tip</th>
+                        </tr>
+                    </thead>
+                    <tbody id="skillsTableBody">
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="/opportunities.html" class="btn" style="background: #e2e8f0; color: #334155; width: auto; padding: 0.65rem 1.25rem; margin: 0; text-decoration: none;">← Back to Opportunities</a>
+                    <a id="eligibilityLink" href="#" class="btn" style="width: auto; padding: 0.65rem 1.25rem; margin: 0; text-decoration: none;">View Eligibility Result →</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const userStr = localStorage.getItem('currentUser');
+        if (!userStr) window.location.href = '/login.html';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const oppId = urlParams.get('oppId');
+        let studentId = urlParams.get('studentId');
+
+        async function init() {
+            if (!oppId) {
+                alert('No opportunity selected');
+                window.location.href = '/opportunities.html';
+                return;
+            }
+
+            try {
+                if (!studentId) {
+                    const currentUser = JSON.parse(userStr);
+                    const pRes = await fetch('/api/students/profile/' + currentUser.id);
+                    if (!pRes.ok) {
+                        alert('Please fill out your profile first!');
+                        window.location.href = '/profile.html';
+                        return;
+                    }
+                    const pData = await pRes.json();
+                    studentId = pData.id;
+                }
+
+                document.getElementById('eligibilityLink').href = `/eligibility.html?oppId=${oppId}`;
+
+                const res = await fetch(`/api/skills/analyze?studentId=${studentId}&opportunityId=${oppId}`);
+                if (!res.ok) throw new Error('Skill gap analysis failed');
+                const data = await res.json();
+
+                render(data);
+            } catch (err) {
+                document.getElementById('loadingText').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        function render(data) {
+            document.getElementById('loadingText').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+
+            document.getElementById('oppHeading').textContent = data.opportunityTitle;
+            document.getElementById('companyHeading').textContent = data.companyName;
+
+            document.getElementById('covNum').textContent = data.skillCoveragePercentage + '%';
+            document.getElementById('availNum').textContent = data.availableCount;
+            document.getElementById('impNum').textContent = data.needsImprovementCount;
+            document.getElementById('missNum').textContent = data.missingCount;
+
+            document.getElementById('progressFill').style.width = data.skillCoveragePercentage + '%';
+
+            const tbody = document.getElementById('skillsTableBody');
+            tbody.innerHTML = data.skillsBreakdown.map(item => {
+                let pillClass = 'pill-missing';
+                let label = 'Missing';
+                if (item.status === 'AVAILABLE') {
+                    pillClass = 'pill-available';
+                    label = 'Available';
+                } else if (item.status === 'NEEDS_IMPROVEMENT') {
+                    pillClass = 'pill-needs_improvement';
+                    label = 'Needs Improvement';
+                }
+
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(item.skillName)}</strong></td>
+                        <td><span class="status-pill ${pillClass}">${label}</span></td>
+                        <td>
+                            <div>${escapeHtml(item.reason)}</div>
+                            <span class="tip-text">💡 <em>Tip:</em> ${escapeHtml(item.learningTip)}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>
