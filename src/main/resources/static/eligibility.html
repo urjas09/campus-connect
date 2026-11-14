@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Eligibility Check</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        .result-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .status-banner {
+            padding: 1.25rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .status-eligible {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+        .status-ineligible {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+        .status-badge {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .match-score {
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 1.25rem 0 0.5rem 0;
+            color: #1e293b;
+        }
+        .criteria-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .criteria-item {
+            padding: 0.65rem 0.85rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .criteria-pass {
+            background: #f0fdf4;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+        .criteria-fail {
+            background: #fef2f2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+        .skills-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .skill-chip-missing {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .action-row {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 600px) {
+            .result-card {
+                padding: 1.25rem 1rem;
+            }
+            .status-banner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">CampusConnect</div>
+            <nav class="nav-links">
+                <a href="/dashboard.html">Dashboard</a>
+                <a href="/opportunities.html">Opportunities</a>
+                <a href="/profile.html">My Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="result-card">
+            <div id="loadingText">Evaluating eligibility criteria...</div>
+
+            <div id="resultContent" style="display: none;">
+                <h2 id="oppHeading" style="margin-bottom: 0.25rem;">Opportunity Title</h2>
+                <p id="companyHeading" class="subtitle" style="margin-bottom: 1.25rem;">Company Name</p>
+
+                <div id="statusBanner" class="status-banner">
+                    <div>
+                        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Overall Decision</div>
+                        <div id="decisionText" class="status-badge">ELIGIBLE</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Profile Match</div>
+                        <div id="matchPercentage" class="match-score">85%</div>
+                    </div>
+                </div>
+
+                <div id="failedSection" style="display: none;">
+                    <div class="section-title">Requirements Not Met</div>
+                    <ul id="failedList" class="criteria-list"></ul>
+                </div>
+
+                <div id="passedSection">
+                    <div class="section-title">Requirements Satisfied</div>
+                    <ul id="passedList" class="criteria-list"></ul>
+                </div>
+
+                <div id="missingSkillsSection" style="display: none;">
+                    <div class="section-title">Recommended Skills to Acquire for this Role</div>
+                    <div id="missingSkillsList" class="skills-chips"></div>
+                </div>
+
+                <div class="action-row">
+                    <a href="/opportunities.html" class="btn" style="background: #e2e8f0; color: #334155; width: auto; padding: 0.65rem 1.25rem; margin: 0; text-decoration: none;">← Back to Drives</a>
+                    <button id="applyBtn" class="btn" style="width: auto; padding: 0.65rem 1.75rem; margin: 0;" onclick="proceedToApply()">
+                        Proceed to Apply
+                    </button>
+                    <a id="skillGapBtn" href="#" class="btn" style="background: #0284c7; width: auto; padding: 0.65rem 1.25rem; margin: 0; text-decoration: none;">
+                        Detailed Skill Gap Analysis →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const userStr = localStorage.getItem('currentUser');
+        if (!userStr) window.location.href = '/login.html';
+        const currentUser = JSON.parse(userStr);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const oppId = urlParams.get('oppId');
+
+        let studentProfileId = null;
+
+        async function runEngine() {
+            if (!oppId) {
+                alert('No opportunity selected');
+                window.location.href = '/opportunities.html';
+                return;
+            }
+
+            try {
+                // Fetch student profile to get profile id
+                const profRes = await fetch('/api/students/profile/' + currentUser.id);
+                if (!profRes.ok) {
+                    alert('Please complete your academic profile before checking eligibility!');
+                    window.location.href = '/profile.html';
+                    return;
+                }
+                const profile = await profRes.json();
+                studentProfileId = profile.id;
+
+                // Call Eligibility Engine API
+                const evalRes = await fetch(`/api/eligibility/check?studentId=${profile.id}&opportunityId=${oppId}`);
+                if (!evalRes.ok) {
+                    throw new Error('Could not evaluate criteria');
+                }
+                const data = await evalRes.json();
+
+                renderResults(data);
+            } catch (err) {
+                document.getElementById('loadingText').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        function renderResults(data) {
+            document.getElementById('loadingText').style.display = 'none';
+            document.getElementById('resultContent').style.display = 'block';
+
+            document.getElementById('oppHeading').textContent = data.opportunityTitle;
+            document.getElementById('companyHeading').textContent = data.companyName;
+            document.getElementById('matchPercentage').textContent = data.matchPercentage + '%';
+
+            const banner = document.getElementById('statusBanner');
+            const decisionText = document.getElementById('decisionText');
+            const applyBtn = document.getElementById('applyBtn');
+
+            if (data.eligible) {
+                banner.className = 'status-banner status-eligible';
+                decisionText.textContent = 'ELIGIBLE TO APPLY';
+                applyBtn.disabled = false;
+            } else {
+                banner.className = 'status-banner status-ineligible';
+                decisionText.textContent = 'NOT ELIGIBLE';
+                applyBtn.disabled = true;
+                applyBtn.style.background = '#94a3b8';
+                applyBtn.style.cursor = 'not-allowed';
+            }
+
+            // Render passed criteria
+            const passedList = document.getElementById('passedList');
+            passedList.innerHTML = data.passedCriteria.map(p =>
+                `<li class="criteria-item criteria-pass">✓ ${escapeHtml(p)}</li>`
+            ).join('');
+
+            // Render failed criteria if any
+            if (data.missingCriteria && data.missingCriteria.length > 0) {
+                document.getElementById('failedSection').style.display = 'block';
+                const failedList = document.getElementById('failedList');
+                failedList.innerHTML = data.missingCriteria.map(m =>
+                    `<li class="criteria-item criteria-fail">✕ ${escapeHtml(m)}</li>`
+                ).join('');
+            }
+
+            // Render missing skills chips
+            if (data.missingSkills && data.missingSkills.length > 0) {
+                document.getElementById('missingSkillsSection').style.display = 'block';
+                const missingChips = document.getElementById('missingSkillsList');
+                missingChips.innerHTML = data.missingSkills.map(s =>
+                    `<span class="skill-chip-missing">${escapeHtml(s)}</span>`
+                ).join('');
+            }
+
+            // Link to Skill Gap Analyzer (Feature 5)
+            document.getElementById('skillGapBtn').href = `/skill-gap.html?oppId=${oppId}&studentId=${studentProfileId}`;
+        }
+
+        function proceedToApply() {
+            // Prepared for Feature 6 (Application Journey)
+            window.location.href = `/apply.html?oppId=${oppId}`;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login.html';
+        }
+
+        runEngine();
+    </script>
+</body>
+</html>
