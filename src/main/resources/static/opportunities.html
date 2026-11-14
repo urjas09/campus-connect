@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Opportunities</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 1050px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        .opportunity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.25rem;
+        }
+        .opp-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .company-badge {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #2563eb;
+            letter-spacing: 0.5px;
+        }
+        .opp-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0.35rem 0;
+        }
+        .opp-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+        .meta-pill {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .crit-box {
+            background: #f8fafc;
+            border-left: 3px solid #2563eb;
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin: 0.75rem 0;
+            font-size: 0.85rem;
+        }
+        .crit-item {
+            margin-bottom: 0.25rem;
+            color: #334155;
+        }
+        .skills-tag {
+            color: #0369a1;
+            font-weight: 600;
+        }
+        .card-actions {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            text-decoration: none;
+            text-align: center;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-outline {
+            background: #ffffff;
+            color: #2563eb;
+            border: 1px solid #2563eb;
+        }
+        .btn-primary-sm {
+            background: #2563eb;
+            color: #ffffff;
+            flex: 1;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 100;
+        }
+        .modal-card {
+            background: #ffffff;
+            border-radius: 8px;
+            max-width: 650px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        @media (max-width: 600px) {
+            .opportunity-grid {
+                grid-template-columns: 1fr;
+            }
+            .header-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">CampusConnect</div>
+            <nav class="nav-links">
+                <a href="/dashboard.html">Dashboard</a>
+                <a href="/profile.html">My Profile</a>
+                <a href="/opportunities.html" style="font-weight: 700;">Opportunities</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="header-actions">
+            <div>
+                <h2>Campus Opportunities</h2>
+                <p class="subtitle" style="margin: 0;">Explore full-time drives & internships</p>
+            </div>
+            <button class="btn" id="postOppBtn" style="width: auto; padding: 0.55rem 1.25rem; margin: 0; display: none;" onclick="openModal()">
+                + Post New Drive
+            </button>
+        </div>
+
+        <div id="alertBox" class="alert"></div>
+
+        <div id="oppList" class="opportunity-grid">
+            <p>Loading opportunities...</p>
+        </div>
+    </main>
+
+    <!-- Modal for Posting Drive (Placement Officers / Admin) -->
+    <div id="oppModal" class="modal">
+        <div class="modal-card">
+            <h3>Post New Campus Drive</h3>
+            <p class="subtitle">Fill in company & eligibility criteria</p>
+
+            <form id="createOppForm">
+                <div class="form-group">
+                    <label>Company Name *</label>
+                    <input type="text" id="mCompany" required placeholder="Google, Microsoft, Infosys...">
+                </div>
+                <div class="form-group">
+                    <label>Role / Job Title *</label>
+                    <input type="text" id="mTitle" required placeholder="Software Development Engineer">
+                </div>
+                <div class="form-group">
+                    <label>Job Description *</label>
+                    <textarea id="mDesc" required rows="3" style="width: 100%; padding: 0.65rem; border: 1px solid #cbd5e1; border-radius: 6px;" placeholder="Brief details about the role..."></textarea>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Job Type *</label>
+                        <select id="mJobType" required>
+                            <option value="FULL_TIME">Full Time</option>
+                            <option value="INTERNSHIP">Internship</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Location *</label>
+                        <input type="text" id="mLocation" required placeholder="Bengaluru / Remote">
+                    </div>
+                    <div class="form-group">
+                        <label>Package / CTC *</label>
+                        <input type="text" id="mPackage" required placeholder="14 LPA or 45,000/mo">
+                    </div>
+                    <div class="form-group">
+                        <label>Min CGPA *</label>
+                        <input type="number" step="0.1" min="0" max="10" id="mCgpa" required placeholder="7.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Allowed Branches *</label>
+                        <input type="text" id="mBranches" required placeholder="CSE, IT, ECE">
+                    </div>
+                    <div class="form-group">
+                        <label>Passing Year *</label>
+                        <input type="number" id="mYear" required placeholder="2026">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Backlogs *</label>
+                        <input type="number" min="0" id="mBacklogs" required placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Deadline *</label>
+                        <input type="date" id="mDeadline" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Required Skills (comma-separated) *</label>
+                    <input type="text" id="mSkills" required placeholder="Java, Spring Boot, MySQL, Git">
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn" style="margin: 0;">Publish Drive</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const userStr = localStorage.getItem('currentUser');
+        if (!userStr) window.location.href = '/login.html';
+        const currentUser = JSON.parse(userStr);
+
+        // Show Post button if role is PLACEMENT_OFFICER or ADMIN
+        if (currentUser.role === 'PLACEMENT_OFFICER' || currentUser.role === 'ADMIN') {
+            document.getElementById('postOppBtn').style.display = 'block';
+        }
+
+        async function loadOpportunities() {
+            const listDiv = document.getElementById('oppList');
+            try {
+                const res = await fetch('/api/opportunities');
+                const opps = await res.json();
+
+                if (!opps || opps.length === 0) {
+                    listDiv.innerHTML = '<p style="color: #64748b;">No campus opportunities posted yet.</p>';
+                    return;
+                }
+
+                listDiv.innerHTML = opps.map(o => `
+                    <div class="opp-card">
+                        <div>
+                            <div class="company-badge">${escapeHtml(o.companyName)}</div>
+                            <h3 class="opp-title">${escapeHtml(o.title)}</h3>
+                            <div class="opp-meta">
+                                <span class="meta-pill">💼 ${o.jobType}</span>
+                                <span class="meta-pill">📍 ${escapeHtml(o.location)}</span>
+                                <span class="meta-pill">💰 ${escapeHtml(o.packageDetails)}</span>
+                            </div>
+                            <div class="crit-box">
+                                <div class="crit-item"><strong>Eligibility:</strong> CGPA ≥ ${o.minCgpa} | Year: ${o.graduationYear}</div>
+                                <div class="crit-item"><strong>Branches:</strong> ${escapeHtml(o.allowedBranches)}</div>
+                                <div class="crit-item"><strong>Skills:</strong> <span class="skills-tag">${escapeHtml(o.requiredSkills)}</span></div>
+                                <div class="crit-item" style="color: #b91c1c;"><strong>Deadline:</strong> ${o.applicationDeadline}</div>
+                            </div>
+                            <p style="font-size: 0.85rem; color: #475569; line-height: 1.4;">${escapeHtml(o.description)}</p>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-primary-sm" onclick="checkEligibility(${o.id})">Check Eligibility & Apply</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                listDiv.innerHTML = '<p style="color: #dc2626;">Failed to load drives: ' + err.message + '</p>';
+            }
+        }
+
+        function checkEligibility(oppId) {
+            // Prepares for Feature 4 & 6: Navigate to eligibility view
+            window.location.href = '/eligibility.html?oppId=' + oppId;
+        }
+
+        function openModal() {
+            document.getElementById('oppModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('oppModal').style.display = 'none';
+        }
+
+        document.getElementById('createOppForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                companyName: document.getElementById('mCompany').value.trim(),
+                title: document.getElementById('mTitle').value.trim(),
+                description: document.getElementById('mDesc').value.trim(),
+                jobType: document.getElementById('mJobType').value,
+                location: document.getElementById('mLocation').value.trim(),
+                packageDetails: document.getElementById('mPackage').value.trim(),
+                minCgpa: parseFloat(document.getElementById('mCgpa').value),
+                allowedBranches: document.getElementById('mBranches').value.trim(),
+                graduationYear: parseInt(document.getElementById('mYear').value),
+                maxBacklogs: parseInt(document.getElementById('mBacklogs').value),
+                requiredSkills: document.getElementById('mSkills').value.trim(),
+                applicationDeadline: document.getElementById('mDeadline').value
+            };
+
+            try {
+                const res = await fetch('/api/opportunities', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    closeModal();
+                    document.getElementById('createOppForm').reset();
+                    loadOpportunities();
+                } else {
+                    const err = await res.json();
+                    alert('Error: ' + (err.message || 'Could not post drive'));
+                }
+            } catch (err) {
+                alert('Request failed: ' + err.message);
+            }
+        });
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login.html';
+        }
+
+        loadOpportunities();
+    </script>
+</body>
+</html>
