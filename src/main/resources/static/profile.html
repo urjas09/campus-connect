@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Student Profile</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        .profile-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+        }
+        .full-width {
+            grid-column: span 2;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .help-text {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+        }
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .full-width {
+                grid-column: span 1;
+            }
+            .profile-card {
+                padding: 1.25rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">CampusConnect</div>
+            <nav class="nav-links">
+                <a href="/dashboard.html">Dashboard</a>
+                <a href="/profile.html" style="font-weight: 700;">My Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="profile-card">
+            <h2>Academic & Placement Profile</h2>
+            <p class="subtitle">Complete your profile to unlock eligibility checking, skill gap analysis and recommendations</p>
+
+            <div id="alertBox" class="alert"></div>
+
+            <form id="profileForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="rollNumber">Roll / Registration Number *</label>
+                        <input type="text" id="rollNumber" required placeholder="e.g. 21BCSE042">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="branch">Degree / Branch *</label>
+                        <select id="branch" required>
+                            <option value="">Select Branch</option>
+                            <option value="CSE">Computer Science & Engineering (CSE)</option>
+                            <option value="IT">Information Technology (IT)</option>
+                            <option value="ECE">Electronics & Communication (ECE)</option>
+                            <option value="MECH">Mechanical Engineering (MECH)</option>
+                            <option value="CIVIL">Civil Engineering (CIVIL)</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cgpa">Current CGPA (out of 10) *</label>
+                        <input type="number" step="0.01" min="0" max="10" id="cgpa" required placeholder="e.g. 8.45">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="graduationYear">Graduation Passing Year *</label>
+                        <input type="number" min="2020" max="2035" id="graduationYear" required placeholder="e.g. 2026">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="activeBacklogs">Active / Standing Backlogs *</label>
+                        <input type="number" min="0" max="20" id="activeBacklogs" required placeholder="0 if none">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phoneNumber">Contact Phone</label>
+                        <input type="tel" id="phoneNumber" placeholder="+91 9876543210">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="skills">Technical Skills (comma-separated) *</label>
+                        <input type="text" id="skills" required placeholder="e.g. Java, Spring Boot, MySQL, Git, Docker, React">
+                        <span class="help-text">Used by Eligibility Engine & Skill Gap Analyzer</span>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="careerInterests">Career Interests (comma-separated)</label>
+                        <input type="text" id="careerInterests" placeholder="e.g. Software Engineer, Backend Developer, Cloud Engineer">
+                        <span class="help-text">Used by Opportunity Recommendation Engine</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="linkedInUrl">LinkedIn Profile URL</label>
+                        <input type="url" id="linkedInUrl" placeholder="https://linkedin.com/in/username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gitHubUrl">GitHub Profile URL</label>
+                        <input type="url" id="gitHubUrl" placeholder="https://github.com/username">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="resumeUrl">Resume Drive Link</label>
+                        <input type="url" id="resumeUrl" placeholder="https://drive.google.com/your-resume">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="saveBtn" style="margin-top: 1.5rem;">Save Profile</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const userStr = localStorage.getItem('currentUser');
+        if (!userStr) {
+            window.location.href = '/login.html';
+        }
+        const currentUser = JSON.parse(userStr);
+
+        const form = document.getElementById('profileForm');
+        const alertBox = document.getElementById('alertBox');
+        const saveBtn = document.getElementById('saveBtn');
+
+        function showAlert(msg, type) {
+            alertBox.textContent = msg;
+            alertBox.className = 'alert ' + (type === 'error' ? 'alert-error' : 'alert-success');
+            alertBox.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Fetch existing profile if available
+        async function loadProfile() {
+            try {
+                const res = await fetch('/api/students/profile/' + currentUser.id);
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('rollNumber').value = data.rollNumber || '';
+                    document.getElementById('branch').value = data.branch || '';
+                    document.getElementById('cgpa').value = data.cgpa || '';
+                    document.getElementById('graduationYear').value = data.graduationYear || '';
+                    document.getElementById('activeBacklogs').value = data.activeBacklogs != null ? data.activeBacklogs : 0;
+                    document.getElementById('skills').value = data.skills || '';
+                    document.getElementById('careerInterests').value = data.careerInterests || '';
+                    document.getElementById('phoneNumber').value = data.phoneNumber || '';
+                    document.getElementById('linkedInUrl').value = data.linkedInUrl || '';
+                    document.getElementById('gitHubUrl').value = data.gitHubUrl || '';
+                    document.getElementById('resumeUrl').value = data.resumeUrl || '';
+                }
+            } catch (err) {
+                console.log('No prior profile found or server error:', err);
+            }
+        }
+
+        loadProfile();
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            alertBox.style.display = 'none';
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            const payload = {
+                rollNumber: document.getElementById('rollNumber').value.trim(),
+                branch: document.getElementById('branch').value,
+                cgpa: parseFloat(document.getElementById('cgpa').value),
+                graduationYear: parseInt(document.getElementById('graduationYear').value),
+                activeBacklogs: parseInt(document.getElementById('activeBacklogs').value),
+                skills: document.getElementById('skills').value.trim(),
+                careerInterests: document.getElementById('careerInterests').value.trim(),
+                phoneNumber: document.getElementById('phoneNumber').value.trim(),
+                linkedInUrl: document.getElementById('linkedInUrl').value.trim(),
+                gitHubUrl: document.getElementById('gitHubUrl').value.trim(),
+                resumeUrl: document.getElementById('resumeUrl').value.trim()
+            };
+
+            try {
+                const res = await fetch('/api/students/profile/' + currentUser.id, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    let msg = data.message || 'Error saving profile';
+                    if (data.errors) {
+                        msg = Object.values(data.errors).join(', ');
+                    }
+                    showAlert(msg, 'error');
+                } else {
+                    showAlert('Profile saved successfully!', 'success');
+                }
+            } catch (err) {
+                showAlert('Connection failed: ' + err.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Profile';
+            }
+        });
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login.html';
+        }
+    </script>
+</body>
+</html>
