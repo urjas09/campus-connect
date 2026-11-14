@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Recommended For You</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 950px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        .rec-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+        .rec-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .rec-info {
+            flex: 1;
+            min-width: 280px;
+        }
+        .rec-score-box {
+            text-align: center;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            min-width: 130px;
+        }
+        .rec-score-val {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1d4ed8;
+            line-height: 1;
+        }
+        .rec-score-lbl {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-top: 0.25rem;
+        }
+        .reason-box {
+            background: #f8fafc;
+            border-left: 3px solid #2563eb;
+            padding: 0.65rem 0.85rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #334155;
+            margin-top: 0.75rem;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 600px) {
+            .rec-card {
+                padding: 1.25rem 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .rec-score-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">CampusConnect</div>
+            <nav class="nav-links">
+                <a href="/dashboard.html">Dashboard</a>
+                <a href="/recommendations.html" style="font-weight: 700;">Recommendations</a>
+                <a href="/opportunities.html">Opportunities</a>
+                <a href="/applications.html">My Applications</a>
+                <a href="/readiness.html">Readiness</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h2>Personalized Opportunity Recommendations</h2>
+        <p class="subtitle">Ranked specifically for your academic standing, technical skill set, and targeted career interests.</p>
+
+        <div id="loadingText">Generating your personalized recommendations...</div>
+
+        <div id="recContainer" class="rec-grid"></div>
+    </main>
+
+    <script>
+        const userStr = localStorage.getItem('currentUser');
+        if (!userStr) window.location.href = '/login.html';
+        const currentUser = JSON.parse(userStr);
+
+        async function init() {
+            try {
+                const profRes = await fetch('/api/students/profile/' + currentUser.id);
+                if (!profRes.ok) {
+                    alert('Please complete your profile first!');
+                    window.location.href = '/profile.html';
+                    return;
+                }
+                const profile = await profRes.json();
+
+                const recRes = await fetch('/api/recommendations/student/' + profile.id);
+                if (!recRes.ok) throw new Error('Could not fetch recommendations');
+                const recs = await recRes.json();
+
+                render(recs);
+            } catch (err) {
+                document.getElementById('loadingText').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        function render(recs) {
+            document.getElementById('loadingText').style.display = 'none';
+            const container = document.getElementById('recContainer');
+
+            if (!recs || recs.length === 0) {
+                container.innerHTML = '<div style="background: white; padding: 2rem; border-radius: 8px; text-align: center;"><p style="color: #64748b;">No new unapplied opportunities match your current criteria. Check back soon!</p></div>';
+                return;
+            }
+
+            container.innerHTML = recs.map(r => `
+                <div class="rec-card">
+                    <div class="rec-info">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: #2563eb; text-transform: uppercase;">
+                            ${escapeHtml(r.companyName)}
+                        </span>
+                        <h3 style="font-size: 1.25rem; color: #1e293b; margin: 0.25rem 0;">${escapeHtml(r.title)}</h3>
+                        <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem;">
+                            📍 ${escapeHtml(r.location)} • 💰 ${escapeHtml(r.packageDetails)}
+                        </div>
+
+                        <div class="reason-box">
+                            <strong>Why Recommended:</strong> ${escapeHtml(r.recommendationReason)}
+                        </div>
+
+                        <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                            <a href="/eligibility.html?oppId=${r.opportunityId}" class="btn" style="width: auto; padding: 0.5rem 1rem; margin: 0; text-decoration: none; font-size: 0.85rem;">
+                                Check Eligibility & Apply
+                            </a>
+                            <a href="/skill-gap.html?oppId=${r.opportunityId}" class="btn" style="background: #e2e8f0; color: #334155; width: auto; padding: 0.5rem 1rem; margin: 0; text-decoration: none; font-size: 0.85rem;">
+                                Skill Gap
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="rec-score-box">
+                        <div class="rec-score-val">${r.affinityScore}%</div>
+                        <div class="rec-score-lbl">Affinity Match</div>
+                        <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.4rem;">
+                            Skills: ${r.skillOverlapPercentage}%
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>
