@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Placement Readiness Score</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+        .score-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .score-hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        .hero-left h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .hero-band {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .pillar-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 1.25rem;
+            border-radius: 6px;
+        }
+        .pillar-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+        }
+        .pillar-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1e293b;
+        }
+        .pillar-progress {
+            background: #e2e8f0;
+            height: 6px;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .pillar-progress-bar {
+            height: 100%;
+            background: #2563eb;
+        }
+        .list-section {
+            margin-top: 1.5rem;
+        }
+        .action-item {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .breakdown-item {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            color: #166534;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 600px) {
+            .score-card {
+                padding: 1.25rem 1rem;
+            }
+            .score-hero {
+                padding: 1.5rem 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">CampusConnect</div>
+            <nav class="nav-links">
+                <a href="/dashboard.html">Dashboard</a>
+                <a href="/opportunities.html">Opportunities</a>
+                <a href="/applications.html">My Applications</a>
+                <a href="/readiness.html" style="font-weight: 700;">Readiness Score</a>
+                <a href="/profile.html">My Profile</a>
+                <a href="#" onclick="logout()">Logout</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="score-card">
+            <div id="loadingText">Computing your placement readiness score...</div>
+
+            <div id="content" style="display: none;">
+                <div class="score-hero">
+                    <div class="hero-left">
+                        <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">
+                            Placement Readiness Score
+                        </div>
+                        <h1><span id="scoreVal">0</span><span style="font-size: 1.5rem; opacity: 0.8;"> / 100</span></h1>
+                        <div id="scoreBand" class="hero-band">Calculating...</div>
+                    </div>
+                    <div style="max-width: 300px; font-size: 0.85rem; opacity: 0.95; line-height: 1.4;">
+                        Transparent rule-based evaluation of your academics, skill toolkit, profile completeness, and campus recruitment momentum.
+                    </div>
+                </div>
+
+                <h3>Readiness Pillars Breakdown</h3>
+                <div class="pillars-grid">
+                    <div class="pillar-box">
+                        <div class="pillar-header">
+                            <span>Academics</span>
+                            <span>Max 30</span>
+                        </div>
+                        <div class="pillar-value" id="pAcad">0</div>
+                        <div class="pillar-progress">
+                            <div class="pillar-progress-bar" id="pAcadBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="pillar-box">
+                        <div class="pillar-header">
+                            <span>Profile Details</span>
+                            <span>Max 20</span>
+                        </div>
+                        <div class="pillar-value" id="pProf">0</div>
+                        <div class="pillar-progress">
+                            <div class="pillar-progress-bar" id="pProfBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="pillar-box">
+                        <div class="pillar-header">
+                            <span>Skill Breadth</span>
+                            <span>Max 30</span>
+                        </div>
+                        <div class="pillar-value" id="pSkill">0</div>
+                        <div class="pillar-progress">
+                            <div class="pillar-progress-bar" id="pSkillBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="pillar-box">
+                        <div class="pillar-header">
+                            <span>Drive Momentum</span>
+                            <span>Max 20</span>
+                        </div>
+                        <div class="pillar-value" id="pMom">0</div>
+                        <div class="pillar-progress">
+                            <div class="pillar-progress-bar" id="pMomBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="list-section">
+                    <h4 style="margin-bottom: 0.75rem; color: #1e293b;">Action Items to Boost Your Score</h4>
+                    <div id="actionList"></div>
+                </div>
+
+                <div class="list-section">
+                    <h4 style="margin-bottom: 0.75rem; color: #1e293b;">Transparent Scoring Log</h4>
+                    <div id="breakdownList"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const userStr = localStorage.getItem('currentUser');
+        if (!userStr) window.location.href = '/login.html';
+        const currentUser = JSON.parse(userStr);
+
+        async function init() {
+            try {
+                const pRes = await fetch('/api/students/profile/' + currentUser.id);
+                if (!pRes.ok) {
+                    alert('Please complete your profile first!');
+                    window.location.href = '/profile.html';
+                    return;
+                }
+                const profile = await pRes.json();
+
+                const scoreRes = await fetch('/api/readiness/student/' + profile.id);
+                if (!scoreRes.ok) throw new Error('Could not calculate readiness score');
+                const data = await scoreRes.json();
+
+                render(data);
+            } catch (err) {
+                document.getElementById('loadingText').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        function render(data) {
+            document.getElementById('loadingText').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+
+            document.getElementById('scoreVal').textContent = data.overallScore;
+            document.getElementById('scoreBand').textContent = data.readinessBand;
+
+            document.getElementById('pAcad').textContent = data.academicScore;
+            document.getElementById('pAcadBar').style.width = ((data.academicScore / 30) * 100) + '%';
+
+            document.getElementById('pProf').textContent = data.profileCompletenessScore;
+            document.getElementById('pProfBar').style.width = ((data.profileCompletenessScore / 20) * 100) + '%';
+
+            document.getElementById('pSkill').textContent = data.skillBreadthScore;
+            document.getElementById('pSkillBar').style.width = ((data.skillBreadthScore / 30) * 100) + '%';
+
+            document.getElementById('pMom').textContent = data.pipelineMomentumScore;
+            document.getElementById('pMomBar').style.width = ((data.pipelineMomentumScore / 20) * 100) + '%';
+
+            const actionList = document.getElementById('actionList');
+            if (!data.improvementActionItems || data.improvementActionItems.length === 0) {
+                actionList.innerHTML = '<div style="color: #16a34a; font-size: 0.9rem;">🎯 Excellent job! All readiness criteria are fully optimized.</div>';
+            } else {
+                actionList.innerHTML = data.improvementActionItems.map(a =>
+                    `<div class="action-item">⚡ ${escapeHtml(a)}</div>`
+                ).join('');
+            }
+
+            const breakdownList = document.getElementById('breakdownList');
+            breakdownList.innerHTML = data.scoreBreakdown.map(b =>
+                `<div class="breakdown-item">✓ ${escapeHtml(b)}</div>`
+            ).join('');
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login.html';
+        }
+
+        init();
+    </script>
+</body>
+</html>
