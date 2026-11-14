@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Register</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">CampusConnect</div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="auth-card">
+            <h2>Create Account</h2>
+            <p class="subtitle">Join CampusConnect for campus opportunities</p>
+
+            <div id="alertBox" class="alert"></div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" required placeholder="Aarav Sharma">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">College Email</label>
+                    <input type="email" id="email" required placeholder="aarav@college.edu">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required minlength="6" placeholder="At least 6 characters">
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" required>
+                        <option value="STUDENT">Student</option>
+                        <option value="PLACEMENT_OFFICER">Placement Officer</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn" id="regBtn">Create Account</button>
+            </form>
+
+            <div class="auth-footer">
+                Already have an account? <a href="/login.html">Log In</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('registerForm');
+        const alertBox = document.getElementById('alertBox');
+        const regBtn = document.getElementById('regBtn');
+
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = 'alert ' + (type === 'error' ? 'alert-error' : 'alert-success');
+            alertBox.style.display = 'block';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            alertBox.style.display = 'none';
+            regBtn.disabled = true;
+            regBtn.textContent = 'Creating account...';
+
+            const payload = {
+                fullName: document.getElementById('fullName').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value,
+                role: document.getElementById('role').value
+            };
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    let msg = data.message || 'Registration failed';
+                    if (data.errors) {
+                        msg = Object.values(data.errors).join(', ');
+                    }
+                    showAlert(msg, 'error');
+                } else {
+                    showAlert('Account created! Redirecting to login...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 1200);
+                }
+            } catch (err) {
+                showAlert('Could not connect to server: ' + err.message, 'error');
+            } finally {
+                regBtn.disabled = false;
+                regBtn.textContent = 'Create Account';
+            }
+        });
+    </script>
+</body>
+</html>

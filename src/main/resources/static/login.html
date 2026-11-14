@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">CampusConnect</div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="auth-card">
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Log in with your college credentials</p>
+
+            <div id="alertBox" class="alert"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">College Email</label>
+                    <input type="email" id="email" required placeholder="you@college.edu">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder="Enter password">
+                </div>
+
+                <button type="submit" class="btn" id="loginBtn">Log In</button>
+            </form>
+
+            <div class="auth-footer">
+                Don't have an account? <a href="/register.html">Sign Up</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const alertBox = document.getElementById('alertBox');
+        const loginBtn = document.getElementById('loginBtn');
+
+        function showAlert(message, type) {
+            alertBox.textContent = message;
+            alertBox.className = 'alert ' + (type === 'error' ? 'alert-error' : 'alert-success');
+            alertBox.style.display = 'block';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            alertBox.style.display = 'none';
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+
+            const payload = {
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    const msg = data.message || 'Login failed';
+                    showAlert(msg, 'error');
+                } else {
+                    showAlert('Success! Logged in as ' + data.fullName + ' (' + data.role + ')', 'success');
+                    // Store user in localStorage
+                    localStorage.setItem('currentUser', JSON.stringify(data));
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 1200);
+                }
+            } catch (err) {
+                showAlert('Could not connect to server: ' + err.message, 'error');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Log In';
+            }
+        });
+    </script>
+</body>
+</html>

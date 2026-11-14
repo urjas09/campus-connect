@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .dashboard-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+        .welcome-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            margin-bottom: 1.5rem;
+        }
+        .user-details {
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .detail-item {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .detail-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .detail-val {
+            font-size: 1.1rem;
+            color: #1e293b;
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+        .role-badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .logout-link {
+            color: #ffffff;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="nav-container">
+            <div class="logo">CampusConnect</div>
+            <div class="nav-actions">
+                <span id="navUserName" style="font-size: 0.9rem;"></span>
+                <a class="logout-link" onclick="logout()">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="welcome-card">
+            <h2>Welcome, <span id="userFullName">User</span>!</h2>
+            <p class="subtitle" style="margin-top: 0.3rem;">You are signed in to the Campus Opportunity & Career Readiness Platform.</p>
+
+            <div class="user-details">
+                <div class="detail-item">
+                    <div class="detail-label">Your Role</div>
+                    <div class="detail-val"><span id="userRole" class="role-badge">STUDENT</span></div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Email Address</div>
+                    <div class="detail-val" id="userEmail">user@college.edu</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">User ID</div>
+                    <div class="detail-val" id="userId">#1</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const userStr = localStorage.getItem('currentUser');
+        if (!userStr) {
+            window.location.href = '/login.html';
+        } else {
+            const user = JSON.parse(userStr);
+            document.getElementById('userFullName').textContent = user.fullName;
+            document.getElementById('navUserName').textContent = user.fullName;
+            document.getElementById('userRole').textContent = user.role;
+            document.getElementById('userEmail').textContent = user.email;
+            document.getElementById('userId').textContent = '#' + user.id;
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login.html';
+        }
+    </script>
+</body>
+</html>
